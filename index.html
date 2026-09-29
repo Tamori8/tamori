@@ -7,7 +7,6 @@
 <body>
     <h1>Gyro Sensor Tracking...</h1>
     
-    <!-- ⬇️ スマホの防衛機能を突破するためのボタンを新しく設置しました -->
     <button id="start_btn" style="font-size:22px; padding:15px 30px; background-color:#0070f3; color:white; border:none; border-radius:5px; cursor:pointer; margin-bottom:20px;">
         ① ここをタップしてセンサーを起動
     </button>
@@ -15,7 +14,6 @@
     <p id="status">ボタンを押すとセンサー収集を開始します...</p>
 
     <script>
-        // ⚠️【重要】ここを今あなたの黒い画面に出ている ngrok のURLに書き換えてください！
         const SERVER_URL = "https://ngrok-free.app"; 
 
         // センサーを動かしてパソコンへ送信する本番の仕組み
@@ -29,7 +27,6 @@
 
                 document.getElementById("status").innerText = `傾き: X=${data.beta}, Y=${data.gamma}`;
 
-                // インターネット（ngrokトンネル）を越えて、あなたのパソコンのPythonへ発送
                 fetch(SERVER_URL, {
                     method: "POST",
                     mode: "cors",
@@ -38,25 +35,21 @@
                 }).catch(err => console.log("送信エラー:", err));
             }, true);
             
-            // 起動したらボタンを画面から消す
             document.getElementById("start_btn").style.display = "none";
         }
 
-        // ボタンがタップされた瞬間に、スマホのOSへ公式に「ジャイロの鍵」を請求する
         document.getElementById("start_btn").addEventListener("click", () => {
-            // iPhone（iOS）用の厳格なセキュリティ解除ルール
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                 DeviceOrientationEvent.requestPermission()
                     .then(permissionState => {
                         if (permissionState === 'granted') {
-                            initSensor(); // 許可されたら起動
+                            initSensor();
                         } else {
-                            alert("スマホの設定でセンサーが拒否されました。設定を確認してください。");
+                            alert("スマホの設定でセンサーが拒否されました。");
                         }
                     })
                     .catch(console.error);
             } else {
-                // AndroidやPCなどの場合
                 initSensor();
             }
         });
