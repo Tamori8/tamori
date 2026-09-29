@@ -2,43 +2,50 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Gyro Fingerprint Test</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gyro Tracking System</title>
 </head>
-<body>
-    <h1>Gyro Sensor Tracking...</h1>
+<body style="font-family: sans-serif; text-align: center; padding-top: 50px; background-color: #f0f2f5;">
+
+    <h1>ジャイロデータ解析テスト</h1>
     
-    <button id="start_btn" style="font-size:22px; padding:15px 30px; background-color:#0070f3; color:white; border:none; border-radius:5px; cursor:pointer; margin-bottom:20px;">
+    <!-- スマホの防衛機能を突破する専用ボタン -->
+    <button id="start_btn" style="font-size: 20px; padding: 15px 30px; background-color: #0070f3; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
         ① ここをタップしてセンサーを起動
     </button>
     
-    <p id="status">ボタンを押すとセンサー収集を開始します...</p>
+    <p id="status" style="font-size: 18px; color: #555; margin-top: 20px;">ボタンを押すと計測を開始します</p>
 
     <script>
-        // ★あなたの最新のngrokの住所をセットしました★
-        const SERVER_URL = "https://ngrok-free.dev"; 
+        // 【理屈の解説】
+        // スマホから見た送り先の住所を、固定の「/api/gyro」という場所に設定します。
+        // これにより、ややこしい ngrok の個別URLをここに書き込む必要が一切なくなります！
+        const SERVER_URL = "/api/gyro"; 
 
-        // センサーを動かしてパソコンへ送信する本番の仕組み
         function initSensor() {
             window.addEventListener("deviceorientation", (event) => {
                 const data = {
-                    alpha: event.alpha ? event.alpha.toFixed(2) : 0,
-                    beta: event.beta ? event.beta.toFixed(2) : 0,
-                    gamma: event.gamma ? event.gamma.toFixed(2) : 0
+                    alpha: event.alpha ? event.alpha.toFixed(2) : "0.00",
+                    beta: event.beta ? event.beta.toFixed(2) : "0.00",
+                    gamma: event.gamma ? event.gamma.toFixed(2) : "0.00"
                 };
 
-                document.getElementById("status").innerText = `傾き: X=${data.beta}, Y=${data.gamma}`;
+                document.getElementById("status").innerText = `送信中... X: ${data.beta}, Y: ${data.gamma}`;
 
+                // Vercel自身に向けてデータを送信（CORSエラーを100%回避）
                 fetch(SERVER_URL, {
                     method: "POST",
-                    mode: "cors",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(data)
-                }).catch(err => console.log("送信エラー:", err));
+                }).catch(err => {
+                    document.getElementById("status").innerText = "送信エラー発生";
+                });
             }, true);
             
             document.getElementById("start_btn").style.display = "none";
         }
 
+        // 厳格なスマホセキュリティを解除する仕組み
         document.getElementById("start_btn").addEventListener("click", () => {
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                 DeviceOrientationEvent.requestPermission()
@@ -46,12 +53,12 @@
                         if (permissionState === 'granted') {
                             initSensor();
                         } else {
-                            alert("スマホの設定でセンサーが拒否されました。");
+                            alert("センサーへのアクセスが拒否されました。設定を確認してください。");
                         }
                     })
-                    .catch(console.error);
+                    .catch(err => alert("エラー: " + err));
             } else {
-                initSensor();
+                initSensor(); // AndroidやPCの場合
             }
         });
     </script>
