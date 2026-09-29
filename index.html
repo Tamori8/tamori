@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Gyro Fingerprint Test</title>
+</head>
+<body>
+    <h1>Gyro Sensor Tracking...</h1>
+    <p id="status">センサー収集中...</p>
+
+    <script>
+        // ★後ほどあなたのパソコンのngrokのURLに書き換えます★
+        const SERVER_URL = "★あなたのパソコンの住所★"; 
+
+        // スマホの傾きを検知する機能
+        window.addEventListener("deviceorientation", (event) => {
+            const data = {
+                alpha: event.alpha ? event.alpha.toFixed(2) : 0, // 方角
+                beta: event.beta ? event.beta.toFixed(2) : 0,   // 前後の傾き
+                gamma: event.gamma ? event.gamma.toFixed(2) : 0 // 左右の傾き
+            };
+
+            document.getElementById("status").innerText = `傾き: X=${data.beta}, Y=${data.gamma}`;
+
+            // インターネットを通じて、あなたのパソコンのPythonへデータを発送する（ソケット通信）
+            fetch(SERVER_URL, {
+                method: "POST",
+                mode: "cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            }).catch(err => console.log("送信エラー:", err));
+        }, true);
+    </script>
+</body>
+</html>
